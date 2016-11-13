@@ -22,12 +22,13 @@ public class Hangman extends AppCompatActivity {
     String newUnderScores = "";
     int counter;
     TextView numWrong;
+    String status = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hangman);
+        Button b = (Button) this.findViewById(R.id.button1);
         initialABC = (TextView) this.findViewById(R.id.initialABC);
         initialABC.setText(abc);
         phrase = (TextView) this.findViewById(R.id.phraseid);
@@ -38,7 +39,6 @@ public class Hangman extends AppCompatActivity {
         submitButton();
         playAgainButton();
     }
-
     public void playAgainButton() {
         Button playAgain = (Button) this.findViewById(R.id.buttonPlay);
         playAgain.setOnClickListener(new Button.OnClickListener() {
@@ -71,24 +71,40 @@ public class Hangman extends AppCompatActivity {
                 TextView resp = (TextView) findViewById(R.id.response);
                 EditText input = (EditText) findViewById(R.id.textView);
                 String guess = input.getText().toString();
-                initialABC.setText("");
-                abc = changeABC(guess, abc);
-                resp.setText(abc);
-                // changes the word into underscores
-                newUnderScores = guessResults(guess, word, newUnderScores);
-                TextView phrase = (TextView) findViewById(R.id.phraseid);
-                phrase.setText(newUnderScores);
-                counter = checkWinOrLose(guess, word, counter);
-                TextView numWrong = (TextView) findViewById(R.id.numWrong);
-                numWrong.setText("Number Wrong: " + counter);
-                if (counter >= 5) {
-                    gameOver();
+                if (guess.length() >= 1) { // changes a word to the first letter
+                    guess = guess.charAt(0) + "";
+                    guess = guess.toUpperCase();
                 }
+                if (!(guess.length() < 1 || !abc.contains(guess) || newUnderScores.contains(guess))) {
+                    guess = guessCheck(guess, abc, newUnderScores,input);
+                    initialABC.setText("");
+                    abc = changeABC(guess, abc);
+                    resp.setText(abc);
+                    // changes the word into underscores
+                    newUnderScores = guessResults(guess, word, newUnderScores);
+                    TextView phrase = (TextView) findViewById(R.id.phraseid);
+                    phrase.setText(newUnderScores);
+                    counter = checkWinOrLose(guess, word, counter);
+                    TextView numWrong = (TextView) findViewById(R.id.numWrong);
+                    status = checkWinOrLoseString(guess, word);
+                    TextView statusMessage = (TextView) findViewById(R.id.statusMessage);
+                    statusMessage.setText(status);
+                    numWrong.setText("Number Wrong: " + counter);
+
+                    if(counter >= 5) {
+                        gameOver();
+                    }
+                } else {
+                    TextView statusMessage = (TextView) findViewById(R.id.statusMessage);
+                    status = "Your guess was invalid. Try again.";
+                    statusMessage.setText(status);
+                }
+
             }
+
 
         });
     }
-
 
     public static String underScores(String word, String underScores) {
         for (int index = 0; index < word.length(); index++) {
@@ -100,6 +116,23 @@ public class Hangman extends AppCompatActivity {
         }
         return underScores;
     }
+
+    public static String guessCheck(String guess, String abc, String phrase, EditText input) {
+        if (guess.length() > 1) { // changes a word to the first letter
+            guess = guess.charAt(0) + "";
+        }
+        // checks if the guess is at least one character, part of the alphabet,
+        // or hasn't already been
+        // guessed
+        if (guess.length() < 1 || !abc.contains(guess) || phrase.contains(guess) || guess.equals("_")) {
+            guess = input.getText().toString();
+            guess = guess.toUpperCase();
+            //guessCheck(guess, abc, phrase, input);
+
+        }
+        return guess;
+    }
+
 
     // changes the current phrase to insert the guess if it matches a letter in
     // the secret phrase
@@ -126,7 +159,6 @@ public class Hangman extends AppCompatActivity {
     public static String guessResults(String guess, String secretPhrase, String currentPhrase) {
         if (secretPhrase.contains(guess)) {
             currentPhrase = newCurrentPhrase(guess, secretPhrase, currentPhrase);
-        } else {
         }
         return currentPhrase;
     }
@@ -181,11 +213,16 @@ public class Hangman extends AppCompatActivity {
         return counter;
     }
 
+    public static String checkWinOrLoseString(String guess, String phrase) {
+        if (!phrase.contains(guess)) {
+            return "Incorrect Answer. Try Again.";
+        }
+        return "Correct Answer! Good job.";
+    }
+
     //this is where the game ends
     public void gameOver() {
         Button b = (Button) this.findViewById(R.id.button1);
         b.setEnabled(false);
     }
-
-
 }
