@@ -3,7 +3,9 @@ package pokecrater1.hangman;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.Activity;
+import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.Button;
@@ -23,58 +25,97 @@ public class Hangman extends AppCompatActivity {
     int counter;
     TextView numWrong;
     String status = "";
+    EditText input;
+    Button b;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hangman);
-        Button b = (Button) this.findViewById(R.id.button1);
+        b = (Button) this.findViewById(R.id.button1);
         initialABC = (TextView) this.findViewById(R.id.initialABC);
         initialABC.setText(abc);
         phrase = (TextView) this.findViewById(R.id.phraseid);
-        newUnderScores = underScores(word,underScores);
+        input = (EditText) findViewById(R.id.textView);
+        newUnderScores = underScores(word, underScores);
         phrase.setText(newUnderScores);
         numWrong = (TextView) findViewById(R.id.numWrong);
         numWrong.setText("Number Wrong: " + counter);
-            b.setOnClickListener(new Button.OnClickListener() {
-                public void onClick(View v) {
-                        TextView resp = (TextView) findViewById(R.id.response);
-                        EditText input = (EditText) findViewById(R.id.textView);
-                        String guess = input.getText().toString();
-                    if (guess.length() >= 1) { // changes a word to the first letter
-                        guess = guess.charAt(0) + "";
-                        guess = guess.toUpperCase();
-                    }
-                    if (!(guess.length() < 1 || !abc.contains(guess) || newUnderScores.contains(guess))) {
-                        guess = guessCheck(guess, abc, newUnderScores,input);
-                        initialABC.setText("");
-                        abc = changeABC(guess, abc);
-                        resp.setText(abc);
-                        // changes the word into underscores
-                        newUnderScores = guessResults(guess, word, newUnderScores);
-                        TextView phrase = (TextView) findViewById(R.id.phraseid);
-                        phrase.setText(newUnderScores);
-                        counter = checkWinOrLose(guess, word, counter);
-                        TextView numWrong = (TextView) findViewById(R.id.numWrong);
-                        status = checkWinOrLoseString(guess, word);
-                        TextView statusMessage = (TextView) findViewById(R.id.statusMessage);
-                        statusMessage.setText(status);
-                        numWrong.setText("Number Wrong: " + counter);
-                        
-                        if(counter >= 5) {
-                            gameOver();
-                        }
-                    } else {
-                        TextView statusMessage = (TextView) findViewById(R.id.statusMessage);
-                        status = "Your guess was invalid. Try again.";
-                        statusMessage.setText(status);
-                    }
-
-                }
-
-            });
-
+        submitButton();
+        playAgainButton();
     }
+
+    public void playAgainButton() {
+        Button playAgain = (Button) this.findViewById(R.id.buttonPlay);
+        playAgain.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                counter = 0;
+                abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                word = movieList(movieList).toUpperCase();
+                setContentView(R.layout.activity_hangman);
+                initialABC = (TextView) findViewById(R.id.initialABC);
+                initialABC.setText(abc);
+                input = (EditText) findViewById(R.id.textView);
+                phrase = (TextView) findViewById(R.id.phraseid);
+                newUnderScores = underScores(word, underScores);
+                phrase.setText(newUnderScores);
+                numWrong = (TextView) findViewById(R.id.numWrong);
+                numWrong.setText("Number Wrong: " + counter);
+
+                submitButton();
+
+                playAgainButton();
+            }
+        });
+    }
+
+    public void submitButton() {
+        Button b = (Button) this.findViewById(R.id.button1);
+        b.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView resp = (TextView) findViewById(R.id.response);
+                input.setOnClickListener(this);
+                String guess = input.getText().toString();
+                input.setText("");
+
+                if (guess.length() >= 1) { // changes a word to the first letter
+                    guess = guess.charAt(0) + "";
+                    guess = guess.toUpperCase();
+                }
+                if (!(guess.length() < 1 || !abc.contains(guess) || newUnderScores.contains(guess))) {
+                    guess = guessCheck(guess, abc, newUnderScores, input);
+                    initialABC.setText("");
+                    abc = changeABC(guess, abc);
+                    resp.setText(abc);
+                    // changes the word into underscores
+                    newUnderScores = guessResults(guess, word, newUnderScores);
+                    TextView phrase = (TextView) findViewById(R.id.phraseid);
+                    phrase.setText(newUnderScores);
+                    counter = checkWinOrLose(guess, word, counter);
+                    TextView numWrong = (TextView) findViewById(R.id.numWrong);
+                    status = checkWinOrLoseString(guess, word);
+                    TextView statusMessage = (TextView) findViewById(R.id.statusMessage);
+                    statusMessage.setText(status);
+                    numWrong.setText("Number Wrong: " + counter);
+
+                    if (counter >= 5) {
+                    gameOver(false);
+                    }
+
+                    if (!newUnderScores.contains("*")) {
+                    gameOver(true);
+                    }
+                } else {
+                    TextView statusMessage = (TextView) findViewById(R.id.statusMessage);
+                    status = "Your guess was invalid. Try again.";
+                    statusMessage.setText(status);
+                }
+            }
+        });
+    }
+
 
     public static String underScores(String word, String underScores) {
         for (int index = 0; index < word.length(); index++) {
@@ -191,8 +232,22 @@ public class Hangman extends AppCompatActivity {
     }
 
     //this is where the game ends
-    public void gameOver() {
+    public void gameOver(boolean win) {
         Button b = (Button) this.findViewById(R.id.button1);
         b.setEnabled(false);
+        if (win) {
+            youHaveWon();
+        } else {
+            youHaveLost();
+        }
+    }
+
+    public void youHaveWon() {
+        TextView youWin = (TextView) findViewById(R.id.youWin);
+        youWin.setText("You Won!!!");
+    }
+
+    public void youHaveLost() {
+
     }
 }
